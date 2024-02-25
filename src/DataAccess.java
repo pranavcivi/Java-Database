@@ -1,4 +1,5 @@
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -111,5 +112,165 @@ public class DataAccess {
         int rowsAffected = smt.executeUpdate(query);
         return "Rows Affected: " + rowsAffected;
     }
+
+    public String readProjects() throws SQLException{
+        Statement smt = conn.createStatement();
+        String query = "select * from project;";
+        ResultSet rs = smt.executeQuery(query);
+        StringBuilder sb = new StringBuilder(String.format("%-6s | %-15s | %-10s | %-10s\n", "number", "Name", "Leader", "Total Charge"));
+        while(rs.next()){
+            int number = rs.getInt("number");
+            String name = rs.getString("name");
+            int leader = rs.getInt("leader");
+            double totalCharge = rs.getDouble("TotalCharge");
+            String formattedLine = String.format("%-6d | %-15s | %-10d | %-10.2f", number, name, leader, totalCharge);
+            sb.append(formattedLine + "\n");
+        }
+        return sb.toString();
+    }
+    public Project readProject(int id) throws SQLException{
+        Statement smt = conn.createStatement();
+        String query = "select * from project where number=" + id + ";";
+        ResultSet rs = smt.executeQuery(query);
+        Project proj;
+        if(rs.next()){
+            proj = new Project(id, rs.getString("name"), rs.getInt("leader"), rs.getDouble("TotalCharge"), null);
+            return proj;
+        }
+        return null;
+    }
+
+    public ArrayList<Integer> readProjectIds() throws SQLException{
+        ArrayList<Integer> out = new ArrayList<>();
+        Statement smt = conn.createStatement();
+        String query = "select number from project;";
+        ResultSet rs = smt.executeQuery(query);
+        while(rs.next()){
+            out.add(rs.getInt("number"));
+        }
+        return out;
+    }
+    public String createProject(Project newProj) throws SQLException{
+        int number = newProj.getNumber();
+        String name = newProj.getName();
+        int leader = newProj.getLeader();
+        double totalCharge = newProj.getTotalCharge();
+        
+        Statement smt = conn.createStatement();
+        String query = String.format("insert into project (number, name, leader, TotalCharge) values (%d, '%s', %d, %f)", number, name, leader, totalCharge);
+        int rowsAffected = smt.executeUpdate(query);
+        return "Rows Affected: " + rowsAffected;
+    }
+
+    public String updateProject(Project updatedProj, int oldID) throws SQLException {
+        int number = updatedProj.getNumber();
+        String name = updatedProj.getName();
+        int leader = updatedProj.getLeader();
+        double totalCharge = updatedProj.getTotalCharge();
+    
+        Statement smt = conn.createStatement();
+        String query = String.format("update project set number = %d, name = '%s', leader = %d, TotalCharge = %f where number = %d", number, name, leader, totalCharge, oldID);
+        int rowsAffected = smt.executeUpdate(query);
+        return "Rows Affected: " + rowsAffected;
+    }
+    
+    public String deleteProject(int projectNumber) throws SQLException {
+        Statement smt = conn.createStatement();
+        String query = String.format("delete from project where number = %d", projectNumber);
+        int rowsAffected = smt.executeUpdate(query);
+        return "Rows Affected: " + rowsAffected;
+    }
+
+    public String createAssignment(Assignment newAssignment) throws SQLException {
+        int employeeID = newAssignment.getEmployeeID();
+        int projectID = newAssignment.getProjectID();
+        double hoursBilled = newAssignment.getHoursBilled();
+        double totalCharge = newAssignment.getTotalCharge();
+
+        Statement smt = conn.createStatement();
+        String query = String.format("insert into assignment (employeeID, projectID, hoursBilled, totalCharge) values (%d, %d, %f, %f)", employeeID, projectID, hoursBilled, totalCharge);
+        int rowsAffected = smt.executeUpdate(query);
+        return "Rows Affected: " + rowsAffected;
+    }
+
+    public String readAssignment() throws SQLException {
+        Statement smt = conn.createStatement();
+        String query = String.format("select * from assignment");
+        ResultSet resultSet = smt.executeQuery(query);
+        StringBuilder sb = new StringBuilder();
+
+        while(resultSet.next()) {
+            int empid = resultSet.getInt("EmployeeID");
+            int projid = resultSet.getInt("ProjectID");
+            double hoursBilled = resultSet.getDouble("hoursBilled");
+            double totalCharge = resultSet.getDouble("totalCharge");
+            String formattedLine = String.format("%d | %d | %.1f| %.2f\n", empid, projid, hoursBilled, totalCharge);
+            sb.append(formattedLine);
+        }
+        return sb.toString();
+    }
+    public ArrayList<Integer> readAssignmentIds(int projectID) throws SQLException{
+        ArrayList<Integer> out = new ArrayList<>();
+        Statement smt = conn.createStatement();
+        String query = String.format("select EmployeeID from assignment where projectid=%d;", projectID);
+        ResultSet rs = smt.executeQuery(query);
+        while(rs.next()){
+            out.add(rs.getInt("EmployeeID"));
+        }
+        return out;
+    }
+
+    public String readAssignments(int projectID) throws SQLException {
+        Statement smt = conn.createStatement();
+        String query = String.format("select * from assignment where projectid=%d;", projectID);
+        ResultSet resultSet = smt.executeQuery(query);
+        StringBuilder sb = new StringBuilder(String.format("%-15s | %-15s | %-15s | %-10s\n", "EmployeeID", "ProjectID", "HoursBilled", "Total Charge"));
+
+        while(resultSet.next()) {
+            int empid = resultSet.getInt("EmployeeID");
+            int projid = resultSet.getInt("ProjectID");
+            double hoursBilled = resultSet.getDouble("hoursBilled");
+            double totalCharge = resultSet.getDouble("totalCharge");
+            String formattedLine = String.format("%-15d | %-15d | %-15.1f| %-10.2f\n", empid, projid, hoursBilled, totalCharge);
+            sb.append(formattedLine);
+        }
+        return sb.toString();
+    }
+    public Assignment getAssignment(int employeeID, int projectID) throws SQLException {
+        Statement smt = conn.createStatement();
+        String query = String.format("select * from assignment where employeeid=%d and projectid=%d;", employeeID, projectID);
+        ResultSet resultSet = smt.executeQuery(query);
+
+        if(resultSet.next()) {
+            int empid = resultSet.getInt("EmployeeID");
+            int projid = resultSet.getInt("ProjectID");
+            double hoursBilled = resultSet.getDouble("hoursBilled");
+            double totalCharge = resultSet.getDouble("totalCharge");
+            return new Assignment(empid, projid, hoursBilled, totalCharge);
+        }
+        return null;
+        
+    }
+
+    // update and delete functions for assignment
+    public String updateAssignment(Assignment ass, int oldEmployeeID, int oldProjectID) throws SQLException{
+        int employeeId = ass.getEmployeeID();
+        int projectId = ass.getProjectID();
+        double hoursBilled = ass.getHoursBilled();
+        double totalCharge = ass.getTotalCharge();
+
+        Statement smt = conn.createStatement();
+        String query = String.format("update assignment set EmployeeID = %d, ProjectID = %d, HoursBilled = %f, TotalCharge = %f where employeeId = %d and projectId = %d", employeeId, projectId, hoursBilled, totalCharge, oldEmployeeID, oldProjectID);
+        int rowsAffected = smt.executeUpdate(query);
+        return "Rows Affected: " + rowsAffected;
+    }
+
+    public String deleteAssignment(int empid, int projid) throws SQLException{
+        Statement smt = conn.createStatement();
+        String query = String.format("delete from assignment where EmployeeID = %d and ProjectID = %d", empid, projid);
+        int rowsAffected = smt.executeUpdate(query);
+        return "Rows Affected: " + rowsAffected;
+    }
+    
 
 }

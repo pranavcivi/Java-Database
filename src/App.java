@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.xml.crypto.Data;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -24,6 +26,8 @@ public class App {
         connection = DriverManager.getConnection(url, user, password);
         // System.out.println("hello");
         new App().createAndShowGUI(connection);
+        DataAccess da = new DataAccess(connection);
+        // System.out.println(da.readProjects());
         
     }
     public void createAndShowGUI(Connection connection) throws SQLException {
@@ -47,6 +51,9 @@ public class App {
         EmployeeView ev = new EmployeeView(this, connection);
         cardPanel.add(ev.getPanel(), "employee-view");
 
+        ProjectView pv = new ProjectView(this, connection);
+        cardPanel.add(pv.getPanel(), "project-view");
+
 
         frame.add(cardPanel);
 
@@ -59,6 +66,7 @@ public class App {
         JPanel mainPanel = new JPanel();
         JButton jobViewButton = new JButton("View Jobs");
         JButton employeeViewButton = new JButton("View Employees");
+        JButton projectViewButton = new JButton("View Projects");
 
         jobViewButton.addActionListener(new ActionListener() {
             @Override
@@ -74,8 +82,16 @@ public class App {
             }
         });
 
+        projectViewButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cardLayout.show(cardPanel, "project-view");
+            }
+        });
+
         mainPanel.add(jobViewButton);
         mainPanel.add(employeeViewButton);
+        mainPanel.add(projectViewButton);
 
         return mainPanel;
     }
